@@ -1,4 +1,4 @@
-# Beaglebone_GRUB_Manual
+# GRUB for BeagleBone Black
 
 Quick installation manual how to set U-boot, GRUB, Linux and root file system based on Busybox for Beaglebone Black board.
 
