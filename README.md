@@ -72,3 +72,16 @@ make install
 ./grub-mkimage  -v -p / -o grub.efi  --format=arm-efi -d $(pwd)/arm_build/lib/grub/arm-efi/  boot linux ext2 fat serial part_msdos part_gpt normal efi_gop iso9660 configfile search loadenv test cat echo gcry_sha256 halt hashsum loadenv reboot
 cd ..
 ```
+
+### Building Linux kernel
+
+BeagleBone board has its own port of Linux. There is no need to change default configuration. More information about available kernels you can find on [Linux on ARM webpage](https://www.digikey.com/eewiki/display/linuxonarm/BeagleBone+Black). The following commands will build Linux kernel for BeagleBone:
+
+```bash
+git clone https://github.com/RobertCNelson/bb-kernel
+cd bb-kernel
+git checkout origin/am33x-v4.9 -b tmp
+./build_kernel.sh
+cd ..
+```
+<sub>source: [Linux on ARM - BeagleBone Black section](https://www.digikey.com/eewiki/display/linuxonarm/BeagleBone+Black)</sub>
