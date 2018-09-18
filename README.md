@@ -63,6 +63,7 @@ U-Boot build process generates proper bootloaders files automatically during com
  ```bash
 git clone git://git.savannah.gnu.org/grub.git
 cd grub
+git checkout c79ebcd18 -b tmp
 mkdir -p arm_build
 ./autogen.sh
 GRUB_TC=arm-linux-gnueabi-
