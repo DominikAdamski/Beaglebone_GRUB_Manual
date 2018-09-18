@@ -85,3 +85,15 @@ git checkout origin/am33x-v4.9 -b tmp
 cd ..
 ```
 <sub>source: [Linux on ARM - BeagleBone Black section](https://www.digikey.com/eewiki/display/linuxonarm/BeagleBone+Black)</sub>
+
+### Building Busybox
+
+[Busybox](https://busybox.net/about.html) provides basic tools for Linux root file systems. Busybox will be used to provide minimal Linux distribution. The following commands will compile Busybox and create stub of BeagleBone root file system:
+
+```bash
+git clone git://busybox.net/busybox.git
+cd busybox
+git checkout 130396295 -b tmp
+make defconfig
+LDFLAGS="--static" make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- CONFIG_PREFIX=${CC} CONFIG_PREFIX=$(pwd)/rootfs_install install
+```
