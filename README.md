@@ -52,3 +52,23 @@ make ARCH=arm CROSS_COMPILE=${CC}
 cd ..
 ```
 <sub>source: [Linux on ARM - BeagleBone Black section](https://www.digikey.com/eewiki/display/linuxonarm/BeagleBone+Black)</sub>
+
+### Building GRUB
+
+U-Boot build process generates proper bootloaders files automatically during compilation. GRUB is slightly different. Build process delivers only tools and necessary components which needs to be put together by the user in addtional step. This approach allows user to easily adjust grub image to individual needs. `grub-mkimage` tool is responsible for generating final `grub.efi` image which will be deployed to the BeagleBone SD card. Configuration of the `grub.efi` presented below assumes that:
+1. GRUB configuration file (`grub.cfg`) will be located at the top of file system of the boot partition. You can specify different localization of the `grub.cfg` file by modifying the value of the `-p` parameter.
+2. GRUB modules which will be available on the BeagleBone board are listed at the end of the `./grub-mkimage` command. You can skip some modules if you don't use them.
+3. All available modules, which you can use, are stored in `$(pwd)/arm_build/lib/grub/arm-efi/`.
+
+ ```bash
+git clone git://git.savannah.gnu.org/grub.git
+cd grub
+mkdir -p arm_build
+./autogen.sh
+GRUB_TC=arm-linux-gnueabi-
+./configure --host=x86_64-linux-gnu TARGET_CC=${GRUB_TC}gcc TARGET_OBJCOPY=${GRUB_TC}objcopy TARGET_STRIP=${GRUB_TC}strip TARGET_NM=${GRUB_TC}nm TARGET_RANLIB=${GRUB_TC}ranlib   --target=arm --with-platform=efi --exec-prefix=$(pwd)/arm_build/ --prefix=$(pwd)/arm_build/
+make -j4
+make install
+./grub-mkimage  -v -p / -o grub.efi  --format=arm-efi -d $(pwd)/arm_build/lib/grub/arm-efi/  boot linux ext2 fat serial part_msdos part_gpt normal efi_gop iso9660 configfile search loadenv test cat echo gcry_sha256 halt hashsum loadenv reboot
+cd ..
+```
