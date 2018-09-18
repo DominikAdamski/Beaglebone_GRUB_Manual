@@ -22,3 +22,33 @@ sudo apt install flex bison gcc-arm-linux-gnueabi mtools parted mtd-utils e2fspr
 
 In comparison to x86 platforms BeagleBone Black platform has no firmware which can provide UEFI functionality which is required by GRUB. As it was stated before, U-Boot can provide UEFI functionality. In consequence, U-Boot shoudl be loaded firstly and then GRUB will load Linux system.
 
+
+## Building binaries
+
+All binaries are build on Ubuntu 18.04 x86_64 platform. Building process does not contain generation of configuration files. It will be done in the next steps. Before building procedures starts it is worth to create a workspace directory where all binaries will be put:
+
+```bash
+mkdir workspace
+cd workspace
+```
+
+### Building U-Boot
+
+U-Boot is the first order bootloader for BeagleBone. U-Boot build requires at least gcc version 6.4. If your Linux distribution does not contain valid compiler for BeagleBone you can get the newest toolchain from [Linaro website](https://www.linaro.org/latest/downloads/). The commands presented below will build patched U-Boot for BeagleBone.
+
+```bash
+export CC=arm-linux-gnueabi-
+git clone https://github.com/u-boot/u-boot
+cd u-boot/
+git checkout v2018.09-rc2 -b tmp
+wget -c https://rcn-ee.com/repos/git/u-boot-patches/v2018.09-rc2/0001-am335x_evm-uEnv.txt-bootz-n-fixes.patch
+wget -c https://rcn-ee.com/repos/git/u-boot-patches/v2018.09-rc2/0002-U-Boot-BeagleBone-Cape-Manager.patch
+
+patch -p1 < 0001-am335x_evm-uEnv.txt-bootz-n-fixes.patch
+patch -p1 < 0002-U-Boot-BeagleBone-Cape-Manager.patch
+make ARCH=arm CROSS_COMPILE=${CC} distclean
+make ARCH=arm CROSS_COMPILE=${CC} am335x_evm_defconfig
+make ARCH=arm CROSS_COMPILE=${CC}
+cd ..
+```
+<sub>source: [Linux on ARM - BeagleBone Black section](https://www.digikey.com/eewiki/display/linuxonarm/BeagleBone+Black)</sub>
