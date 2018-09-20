@@ -98,3 +98,28 @@ git checkout 130396295 -b tmp
 make defconfig
 LDFLAGS="--static" make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- CONFIG_PREFIX=${CC} CONFIG_PREFIX=$(pwd)/rootfs_install install
 ```
+
+## Setting up system configuration files
+
+The following commands will work under the assumption that you are still in busybox directory. `rootfs_install` subdirectory is the place where BeagleBone root file system is created. Later, it will be mapped to `ext4` system partition. There is also a need to create separate subdirectory `efi` which will be mapped into boot efi partition.
+
+### Content of boot EFI partition
+
+`grub.efi` image and bootloaders configuration files should be placed on boot partition. U-Boot image files (`MLO`and `u-boot.img`) will be placed at the very beginning of the disc image. They will be located before the beginning of the boot partition for the safety reason. Copying U-Boot files is done in next steps. Now we need to be sure that U-Boot and GRUB are taylored to our needs. We need to provide automatic loading of GRUB by U-Boot and correct booting sequence of Linux. Firstly we need to create temporary directory for the future boot partition:
+
+```bash
+mkdir efi
+cd efi
+```
+
+#### uEnv.txt
+
+`uEnv.txt` is the file which is used to configure U-Boot. U-Boot after self-loading searches for the configuration file which specifies next booting commandsi by overwritting default content of `uenvcmd` variable. In our case U-Boot searches for uEnv.txt file in the top level of boot partition. `uEnv.txt` contains a script, which loads from SD card into RAM memory `grub.efi` image and it starts GRUB by calling `bootefi` command. `${loadaddr}` variable is predefined by U-Boot. The command below add `uEnv.txt` file to `efi` directory:
+
+```bash
+cat <<- 'EOF' > uEnv.txt
+loadgrub=load mmc 0:1 ${loadaddr} grub.efi
+uenvcmd=run loadgrub; bootefi ${loadaddr}
+EOF
+```
+
