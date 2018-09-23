@@ -109,7 +109,6 @@ The following commands will work under the assumption that you are still in busy
 
 ```bash
 mkdir efi
-cd efi
 ```
 
 #### uEnv.txt
@@ -117,9 +116,26 @@ cd efi
 `uEnv.txt` is the file which is used to configure U-Boot. U-Boot after self-loading searches for the configuration file which specifies next booting commandsi by overwritting default content of `uenvcmd` variable. In our case U-Boot searches for uEnv.txt file in the top level of boot partition. `uEnv.txt` contains a script, which loads from SD card into RAM memory `grub.efi` image and it starts GRUB by calling `bootefi` command. `${loadaddr}` variable is predefined by U-Boot. The command below add `uEnv.txt` file to `efi` directory:
 
 ```bash
+cd efi
 cat <<- 'EOF' > uEnv.txt
 loadgrub=load mmc 0:1 ${loadaddr} grub.efi
 uenvcmd=run loadgrub; bootefi ${loadaddr}
 EOF
 ```
 
+#### GRUB image and GRUB configuration file
+
+GRUB image needs to be placed on boot partition. We have decided that GRUB configuration file will be placed at the top of boot partition. You can modify it by setting different value of `-p` parameter of `grub-mkimage` command.
+
+GRUB configuration file contains commands which will be executed by the GRUB. This file can contain different booting scenarios. You can for example set nice boot menu where you can choose which file system you want to boot. The configuration file presented below is simple and its goal is to boot Linux without any additional menu. If you wish you can freely extend this configuration file. The syntax of GRUB configuration file is platform independent. You can reuse some parts of the configuration files from other hardware platforms.
+
+The content of the following configuration file is as follows: firstly we set root symbol to the system partition. Then we load Linux kernel with default params (we enable output UART console, we set Linux root to partition 2 and we enable read/write access). Next, we load device tree for BeagleBone. When device tree is loaded we boot the whole system.
+
+```bash
+cat <<-EOF >grub.cfg
+set root=(hd0,msdos2)
+linux /boot/vmlinuz root=/dev/mmcblk0p2 console=ttyS0,115200n8 rw
+devicetree /boot/am335x-boneblack.dtb
+boot
+EOF
+```
