@@ -139,3 +139,71 @@ devicetree /boot/am335x-boneblack.dtb
 boot
 EOF
 ```
+
+### Linux system partition
+
+Busybox provides almost complete basic root file systems. We have decided that Busybox will be installed in `rootfs_install` directory (parameter `CONFIG_PREFIX` in `make install` command in Busybox build section). We can freely modify the Linux root file systems. Our configuration requires adding few files to make build Linux usable.
+
+#### Mount information
+
+Our implementation of Linux for BeagleBone consists of 2 partitions. We need to add information where they should be placed. This information is stored in `etc/fstab` file. We need to add this file to our file system:
+
+```bash
+cd ../rootfs_install
+mkdir etc
+cat <<- EOF > etc/fstab
+/dev/mmcblk0p1  /boot/efi  auto  defaults  0  2
+/dev/mmcblk0p2 / auto errors=remount-ro 0 1
+EOF
+```
+
+The first partition is boot EFI partition. According to the convention it should be mounted under `/boot/efi` directory. The second partition is system partition and it should be mounted under the root directory.
+
+#### Console devices
+
+We need to add some console devices in order to be able to communicate with Linux. It can be done in the following way:
+
+```bash
+mkdir dev
+sudo mknod dev/console c 5 1
+sudo mknod dev/null c 1 3
+```
+
+#### Linux kernel and device tree file
+
+The Busybox build does not contain information about Linux kernel. It also does not contain valid device tree file for BeagleBone. We need to add this file. These files are located in `boot` directory. According to GRUB configuration file our Linux kernel file is called `vmlinuz` and device tree file is called `am335x-boneblack.dtb`. The commands presented below add required files to `boot` directory:
+
+```bash
+mkdir -p  boot/efi
+cp ../../bb-kernel/deploy/4.9.119-bone11.zImage boot/vmlinuz
+cp ../../bb-kernel/KERNEL/arch/arm/boot/dts/am335x-boneblack.dtb boot/
+```
+
+#### Init script
+
+We need to add init script which will be used when Linux is started. Our init script is simple. It mounts `proc`, `sys` and `debugfs` file systems. Then it displays welcome message and it starts Linux shell:
+
+```bash
+mkdir -p etc/init.d
+mkdir -p sys
+mkdir -p sys/kernel/debug
+mkdir -p proc
+
+cat <<-EOF >etc/init.d/rcS
+#!/bin/sh
+
+mount -t proc none /proc
+mount -t sysfs none /sys
+mount -t debugfs none /sys/kernel/debug 
+cat <<!
+
+Boot took $(cut -d' ' -f1 /proc/uptime) seconds
+Welcome to Linux on BeagleBone
+
+
+!
+exec /bin/sh
+EOF
+chmod +x etc/init.d/rcS
+```
+
