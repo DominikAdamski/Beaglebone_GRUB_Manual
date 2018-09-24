@@ -255,3 +255,6 @@ sudo umount mnt2
 sudo losetup -d /dev/loop0
 ```
 
+## Deploy root.img into SD card
+
+Now you can deploy root.img into SD card. You can do it by `dd` command. You can observe booting logs via BeagleBone UART interface. After the finish of the booting process you should be able to execute shell commands as the root user.
