@@ -205,5 +205,53 @@ Welcome to Linux on BeagleBone
 exec /bin/sh
 EOF
 chmod +x etc/init.d/rcS
+cd ../..
+```
+## Setting complete disc image
+
+We have created complete Linux file system. We need to place created file system into single `*.img` file. This image file can be easily deployed to SD card.
+
+### Setting U-Boot
+We need to set U-Boot files (`MLO` and `u-boot.img`) at the very beginning of the final image. For the safety reason we put them just before system partition. In consequence they are invisible from Linux file system and they cannot be easily modified by accidental Linux commands. It gives us guarantee that we can access U-Boot console even if Linux file system is broken. The following commands creates blank image file and they place U-Boot files at the beginning of the image:
+
+```bash
+dd if=/dev/zero of=root.img  count=524288 bs=512
+dd if=./u-boot/MLO of=root.img count=1 seek=1 bs=128k conv=notrunc
+dd if=./u-boot/u-boot.img of=root.img count=2 seek=1 bs=384k conv=notrunc
+```
+
+### Setting partitions on the disc image
+
+Now, we can create partitions on the disc image. The boot partion will be formatted as `FAT` partition. EFI standard requires this type of file system. We need to put this partition with 4 MB offset. This offset prevents againt overriding U-Boot files which were deployed to disc image in the previous step. The system partition is formatted as `ext4` partition. The following commands create both partitions. They work under the assumption that /dev/loop0 is not associated with any file. In other case please choose another loop device.
+
+```bash
+sudo losetup /dev/loop0 root.img
+sudo sfdisk /dev/loop0 <<-EOF
+4M,64M,,*
+68M,,, 
+EOF
+
+sudo partprobe /dev/loop0
+sudo mkfs.fat -n BOOT /dev/loop0p1
+sudo mkfs.ext4 -L rootfs -O ^metadata_csum,^64bit /dev/loop0p2
+```
+
+### Setting up content of the partitions
+
+Partitions inside root.img file are creted. Now we need to populate them. We can do it by mounting associate loop partitions and copying the content of `busybox/efi` and `busybox/rootfs_install` into mapped loop partitions:
+
+```bash
+mkdir mnt1
+mkdir mnt2
+sudo mount /dev/loop0p1  mnt1/
+sudo rsync -a busybox/efi/ mnt1/
+sudo chown -R root:root mnt1/
+sudo umount mnt1
+
+sudo mount /dev/loop0p2  mnt2/
+sudo rsync -a busybox/rootfs_install/ mnt2/
+sudo chown -R root:root mnt2/
+sudo umount mnt2
+sudo losetup -d /dev/loop0
 ```
 
