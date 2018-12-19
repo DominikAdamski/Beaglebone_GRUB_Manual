@@ -61,6 +61,7 @@ U-Boot build process generates proper bootloaders files automatically during com
 3. All available modules, which you can use, are stored in `$(pwd)/arm_build/lib/grub/arm-efi/`.
 
  ```bash
+unset CC
 git clone git://git.savannah.gnu.org/grub.git
 cd grub
 git checkout c79ebcd18 -b tmp
@@ -79,6 +80,7 @@ cd ..
 BeagleBone board has its own port of Linux. There is no need to change default configuration. More information about available kernels you can find on [Linux on ARM webpage](https://www.digikey.com/eewiki/display/linuxonarm/BeagleBone+Black). The following commands will build Linux kernel for BeagleBone:
 
 ```bash
+export CC=arm-linux-gnueabi-
 git clone https://github.com/RobertCNelson/bb-kernel
 cd bb-kernel
 git checkout origin/am33x-v4.9 -b tmp
