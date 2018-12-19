@@ -234,7 +234,7 @@ Now, we can create partitions on the disc image. The boot partion will be format
 sudo losetup /dev/loop0 root.img
 sudo sfdisk /dev/loop0 <<-EOF
 4M,64M,,*
-68M,,, 
+68M,,,
 EOF
 
 sudo partprobe /dev/loop0
