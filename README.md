@@ -125,7 +125,11 @@ EOF
 
 #### GRUB image and GRUB configuration file
 
-GRUB image needs to be placed on boot partition. We have decided that GRUB configuration file will be placed at the top of boot partition. You can modify it by setting different value of `-p` parameter of `grub-mkimage` command.
+GRUB image needs to be placed on boot partition. We have decided that GRUB configuration file will be placed at the top of boot partition. You can modify it by setting different value of `-p` parameter of `grub-mkimage` command. You need to copy created GRUB image into boot partition. In our case we placed GRUB image file at the top of boot partition:
+
+```bash
+cp ../../grub/grub.efi .
+```
 
 GRUB configuration file contains commands which will be executed by the GRUB. This file can contain different booting scenarios. You can for example set nice boot menu where you can choose which file system you want to boot. The configuration file presented below is simple and its goal is to boot Linux without any additional menu. If you wish you can freely extend this configuration file. The syntax of GRUB configuration file is platform independent. You can reuse some parts of the configuration files from other hardware platforms.
 
